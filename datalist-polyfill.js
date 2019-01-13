@@ -444,6 +444,7 @@
 
 		// Set general styling related definitions
 		datalistSelect.style.position = 'absolute';
+		datalistSelect.style.zIndex = 10000;
 
 		// Initially hiding the datalist select
 		toggleVisibility(false, datalistSelect);
@@ -459,30 +460,21 @@
 		}
 
 		// The select should get positioned underneath the input field ...
-		if (inputStyles.getPropertyValue('display') === 'block') {
-			datalistSelect.style.marginTop =
-				'-' + inputStyles.getPropertyValue('margin-bottom');
-		} else {
-			var direction =
-				inputStyles.getPropertyValue('direction') === 'rtl' ? 'right' : 'left';
-
-			datalistSelect.style.setProperty(
-				'margin-' + direction,
-				'-' +
-					(rects[0].width +
-						parseFloat(inputStyles.getPropertyValue('margin-' + direction))) +
-					'px'
-			);
-			datalistSelect.style.marginTop =
-				parseInt(rects[0].height + (input.offsetTop - datalist.offsetTop), 10) +
-				'px';
+		function positionSelect() {
+			var inputRect = input.getBoundingClientRect();
+			var bodyRect = document.body.getBoundingClientRect();
+			datalistSelect.style.left = (-bodyRect.left + inputRect.left) + 'px';
+			datalistSelect.style.top = (-bodyRect.top + inputRect.top + inputRect.height) + 'px';
+			datalistSelect.style.width = inputRect.width + 'px';
 		}
+
+		positionSelect();
+		window.addEventListener('resize', positionSelect);
 
 		// Set the polyfilling selects border-radius equally to the one by the polyfilled input
 		datalistSelect.style.borderRadius = inputStyles.getPropertyValue(
 			'border-radius'
 		);
-		datalistSelect.style.minWidth = rects[0].width + 'px';
 
 		if (touched) {
 			var messageElement = dcmnt.createElement('option');
@@ -644,12 +636,19 @@
 					*/
 					var element = dcmnt.getElementById(this.getAttribute('list'));
 
-					return typeof this === 'object' &&
+					var datalist = typeof this === 'object' &&
 						this instanceof constructor &&
 						element &&
 						element.matches('datalist')
 						? element
 						: null;
+
+					//move datalist into body element for reliable positioning
+					if (datalist && datalist.parentNode !== document.body) {
+						document.body.appendChild(datalist);
+					}
+
+					return datalist;
 				}
 			});
 		}
