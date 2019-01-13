@@ -161,6 +161,7 @@
 		}
 
 		// Toggle the visibility of the datalist select according to previous checks
+		datalistSelect.focusedInput = input;
 		toggleVisibility(visible, datalistSelect);
 	};
 
@@ -460,16 +461,16 @@
 		}
 
 		// The select should get positioned underneath the input field ...
-		function positionSelect() {
-			var inputRect = input.getBoundingClientRect();
+		datalistSelect.positionMe = function() {
+			var inputRect = (datalistSelect.focusedInput || input).getBoundingClientRect();
 			var bodyRect = document.body.getBoundingClientRect();
 			datalistSelect.style.left = (-bodyRect.left + inputRect.left) + 'px';
 			datalistSelect.style.top = (-bodyRect.top + inputRect.top + inputRect.height) + 'px';
 			datalistSelect.style.width = inputRect.width + 'px';
-		}
+		};
 
-		positionSelect();
-		window.addEventListener('resize', positionSelect);
+		datalistSelect.positionMe();
+		window.addEventListener('resize', datalistSelect.positionMe);
 
 		// Set the polyfilling selects border-radius equally to the one by the polyfilled input
 		datalistSelect.style.borderRadius = inputStyles.getPropertyValue(
@@ -613,6 +614,7 @@
 	var toggleVisibility = function(visible, datalistSelect) {
 		if (visible) {
 			datalistSelect.removeAttribute('hidden');
+			datalistSelect.positionMe();
 		} else {
 			datalistSelect.setAttributeNode(dcmnt.createAttribute('hidden'));
 		}
